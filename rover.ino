@@ -9,6 +9,11 @@ int motor_pin4 = 7;
 //LED pin numbers
 int greenLed = 3, redLed = 2;
 
+const int pingPin = 13;
+ 
+//pin which delivers time to receive echo using pulseIn()
+int inPin = 12;
+
 HMC5883L compass;
 
 void setup ()
@@ -20,7 +25,10 @@ void setup ()
   pinMode(motor_pin3,OUTPUT);
   pinMode(motor_pin4,OUTPUT);
 
-  compass = HMC5883L();
+  pinMode(pingPin, OUTPUT);
+  pinMode(inPin, INPUT);
+
+/*  compass = HMC5883L();
 
   Serial.println("Setting scale to +/- 1.3 Ga");
   int error = compass.SetScale(1.3); // Set the scale of the compass.
@@ -31,31 +39,58 @@ void setup ()
   error = compass.SetMeasurementMode(Measurement_Continuous); // Set the measurement mode to Continuous
   if(error != 0) // If there is an error, print it out.
     Serial.println(compass.GetErrorText(error));
+    */
 }
+
+float getDistance()
+{
+  digitalWrite(pingPin, LOW);
+  delay(2);
+  digitalWrite(pingPin, HIGH);
+  delay(5);
+  digitalWrite(pingPin, LOW);
+  int d = pulseIn(inPin, HIGH);
+  float cm = d > 0 ? d/(29.0f*2.0f) : 300.0f;
+
+  delay(20);
+  return cm;
+}
+
 void loop()
 {
   forward();
-  delay(1000);
-  turnleft();
+
+  for(;;)
+  {
+    float dist = getDistance();
+    Serial.print(dist);
+    Serial.println("cm");
+
+    if (dist < 15)
+      break;
+  }
+
+  halt();
+  backward();
+
+  turnright();
   
   halt();
-  delay(10000);
 }
  
 void forward() {                            // use combination which works for you
-   digitalWrite(motor_pin1,HIGH);
-   digitalWrite(motor_pin2,LOW);
-   digitalWrite(motor_pin3,HIGH);
-   digitalWrite(motor_pin4,LOW);
-   return;
- }
+  digitalWrite(motor_pin1,HIGH);
+  digitalWrite(motor_pin2,LOW);
+  digitalWrite(motor_pin3,HIGH);
+  digitalWrite(motor_pin4,LOW);
+}
 
 void backward() {
   digitalWrite(motor_pin1,LOW);
   digitalWrite(motor_pin2,HIGH);
   digitalWrite(motor_pin3,LOW);
   digitalWrite(motor_pin4,HIGH);
-  delay(500);
+  delay(200);
   halt();
   return;
 }
@@ -84,7 +119,7 @@ float cropAngle(float src)
   return src;
 }
 
-void turnleft () {
+void turnright () {
   
   float initHeading = getHeading();
   
@@ -121,7 +156,7 @@ void turnleft () {
   return;
 }
 
-void turnright () {
+void turnleft () {
   digitalWrite(motor_pin1,LOW);       //use the combination which works for you
   digitalWrite(motor_pin2,HIGH);    //left motor rotates forward and right motor backward
   digitalWrite(motor_pin3,HIGH);
