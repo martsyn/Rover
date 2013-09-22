@@ -73,6 +73,9 @@ void loop()
   halt();
   backward();
 
+  delay(1000);
+  halt();
+
   turnright();
   
   halt();
@@ -90,9 +93,6 @@ void backward() {
   digitalWrite(motor_pin2,HIGH);
   digitalWrite(motor_pin3,LOW);
   digitalWrite(motor_pin4,HIGH);
-  delay(200);
-  halt();
-  return;
 }
 
 void halt () {
